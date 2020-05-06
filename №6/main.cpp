@@ -132,34 +132,34 @@ bool dataRegFree() {
 //Проверка кода возврата
 bool retCodeGood() {
 
-	for (int i = 0; i < 3; i++) {
+	int val = inp(0x60);
+	printf("Return code : 0x%02X ", val);
 
-		int val = inp(0x60);
-		printf("Return code : 0x%02X ", val);
-
-		if (val == 0xFE) {
-			printf(" - An error occured while processing data byte.\n");
-		}
-		else {
-			printf(" - So far so good.\n");
-			return true;
-		}
+	if (val == 0xFE) {
+		printf(" - An error occured while processing data byte.\n");
+		return false;
 	}
-	return false;
+	else {
+		printf(" - So far so good.\n");
+		return true;
+	}
 }
 
 //Записать в регистр данных значение и проверить результат обработки
 bool writeAndCheck(int val) {
 
-	outp(0x60, val);
+	for (int i = 0; i < 3; i++) {
 
-	if (!dataRegFree())
-		return false;
+		outp(0x60, val);
 
-	if (!retCodeGood())
-		return false;
+		if (!dataRegFree())
+			return false;
 
-	return true;
+		if (!retCodeGood())
+			continue;
+
+		return true;
+	}
 }
 
 int main() {
