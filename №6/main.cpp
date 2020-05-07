@@ -3,9 +3,12 @@
 
 typedef int bool;
 
+#define dot 80
+#define dash 240
+
+
 #define true 1
 #define false 0
-#define ITER 10
 
 struct VIDEO
 {
@@ -17,7 +20,7 @@ struct VIDEO
 void interrupt(*oldKeyboard)(...);
 
 void print(int);					//Вывести код возврата в резидентной программе
-void blink();						//Моргнуть индикаторами
+void blink();						//Моргание индикаторами
 bool dataRegFree();					//Проверяем свободен ли регистр данных
 bool retCodeGood();					//Проверка кода возврата
 bool writeAndCheck(int);				//Записать в регистр данных значение и проверить результат обработки
@@ -25,7 +28,7 @@ bool writeAndCheck(int);				//Записать в регистр данных з
 
 void interrupt newKeyboard(...) {
 
-	print(inp(0x60));
+	print(inp(0x60));				//Вывести код возврата
 	oldKeyboard();					//Старое прерывание
 }
 
@@ -91,35 +94,42 @@ void print(int val) {
 
 void blink() {
 
+	int SOS[] = { dot, dot, dot, dash, dash, dash, dot, dot, dot };
+
 	if (!dataRegFree())
 		return;
+	
+	for (int i = 0; i < 9; i++) {
 
-	//Управляющий байт
-	if (!writeAndCheck(0xED))
-		return;
 
-	//Включить все индикаторы
-	if (!writeAndCheck(0xFF))
-		return;
+		//Управляющий байт
+		if (!writeAndCheck(0xED))
+			return;
 
-	//Подождать
-	delay(2000);
+		//Включить все индикаторы
+		if (!writeAndCheck(0xFF))
+			return;
 
-	//Управляющий байт
-	if (!writeAndCheck(0xED))
-		return;
+		//Подождать
+		delay(SOS[i]);
 
-	//Выключить все индикаторы
-	if (!writeAndCheck(0x00))
-		return;
+		//Управляющий байт
+		if (!writeAndCheck(0xED))
+			return;
 
-	printf("Finished blinking\n");	
+		//Выключить все индикаторы
+		if (!writeAndCheck(0x00))
+			return;
+
+		delay(dot);
+	}
+	printf("Transmission finished\n");	
 }
 
 //Проверяем свободен ли регистр данных
 bool dataRegFree() {
 
-	for (int i = 0; i < ITER; i++) {
+	for (int i = 0; i < 10; i++) {
 
 		//Проверяем 1 бит регистра состояния
 		if (!(inp(0x64) & 0x02))
