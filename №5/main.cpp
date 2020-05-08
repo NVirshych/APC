@@ -178,6 +178,8 @@ void setDelay() {
 	printf("Delay end time   : ");
 	getTime();
 
+	outp(0xA1, (inp(0xA1) | 0x01);							//Замаскировать линии сигнала запроса от RTC
+	
 	_disable();									//Запретить прерывания
 	setvect(0x70, oldTimer);							//Установить старый обработчик прерывания
 	_enable();									//Разрешить прерывания
@@ -254,6 +256,12 @@ void resetAlarm() {
 	outp(0x71, (inp(0x71) & 0xDF));							//Запрет сигнального прерывания (будильник)
 
 	setvect(0x4A, oldAlarm);							//Установить старый обработчик прерывания
+	
+	if(delayCounter > 0) {
+		_enable();
+		return;
+	}
+	
 	outp(0xA1, (inp(0xA0) | 0x01));							//Замаскировать линии сигнала запроса от RTC
 
 	_enable();
