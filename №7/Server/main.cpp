@@ -9,7 +9,7 @@ using namespace std;
 
 int main(){
 
-	char path[] = "C:\\VSrepos\\АПК\\Lab7\\Client\\Debug\\Client.exe";
+	char path[] = "C:\\VSrepos\\РђРџРљ\\Lab7\\Client\\Debug\\Client.exe";
 
 	HANDLE hWrite = CreateFile("COM1", GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
 	if (!hWrite) {
@@ -17,7 +17,7 @@ int main(){
 		return 0;
 	}
 
-	//Сигнал окончания чтения
+	//РЎРёРіРЅР°Р» РѕРєРѕРЅС‡Р°РЅРёСЏ С‡С‚РµРЅРёСЏ
 	HANDLE readyToWrite = CreateEvent(NULL, TRUE, TRUE, "readyToWrite");
 	if (!readyToWrite) {
 		cout << "Failed to create readyToWrite Event!" << endl;
@@ -25,7 +25,7 @@ int main(){
 		return 0;
 	}
 
-	//Overlapped для чтения из порта
+	//Overlapped РґР»СЏ С‡С‚РµРЅРёСЏ РёР· РїРѕСЂС‚Р°
 	HANDLE readyToRead = CreateEvent(NULL, TRUE, FALSE, "readyToRead");
 	if (!readyToRead) {
 		cout << "Failed to create readyToRead Event!" << endl;
@@ -36,15 +36,15 @@ int main(){
 	OVERLAPPED asynchWrite = { 0 };
 	asynchWrite.hEvent = readyToRead;
 
-	//Новый процесс
-	STARTUPINFO si;																			//Структура определяющая свойства нового процесса	
-	ZeroMemory(&si, sizeof(STARTUPINFO));													//Обнуление структуры si
-	si.cb = sizeof(STARTUPINFO);															//Инициализация поля cb структуры si размером структры
+	//РќРѕРІС‹Р№ РїСЂРѕС†РµСЃСЃ
+	STARTUPINFO si;																			//РЎС‚СЂСѓРєС‚СѓСЂР° РѕРїСЂРµРґРµР»СЏСЋС‰Р°СЏ СЃРІРѕР№СЃС‚РІР° РЅРѕРІРѕРіРѕ РїСЂРѕС†РµСЃСЃР°	
+	ZeroMemory(&si, sizeof(STARTUPINFO));													//РћР±РЅСѓР»РµРЅРёРµ СЃС‚СЂСѓРєС‚СѓСЂС‹ si
+	si.cb = sizeof(STARTUPINFO);															//РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ РїРѕР»СЏ cb СЃС‚СЂСѓРєС‚СѓСЂС‹ si СЂР°Р·РјРµСЂРѕРј СЃС‚СЂСѓРєС‚СЂС‹
 
-	PROCESS_INFORMATION client;																//Создание структуры PROCESS_INFORMATION для нового процесса
-	ZeroMemory(&client, sizeof(PROCESS_INFORMATION));										//Обнуление структуры pi
+	PROCESS_INFORMATION client;																//РЎРѕР·РґР°РЅРёРµ СЃС‚СЂСѓРєС‚СѓСЂС‹ PROCESS_INFORMATION РґР»СЏ РЅРѕРІРѕРіРѕ РїСЂРѕС†РµСЃСЃР°
+	ZeroMemory(&client, sizeof(PROCESS_INFORMATION));										//РћР±РЅСѓР»РµРЅРёРµ СЃС‚СЂСѓРєС‚СѓСЂС‹ pi
 
-	if (!CreateProcess(NULL,																//Создание нового процесса
+	if (!CreateProcess(NULL,																//РЎРѕР·РґР°РЅРёРµ РЅРѕРІРѕРіРѕ РїСЂРѕС†РµСЃСЃР°
 		path,
 		NULL,
 		NULL,
@@ -64,38 +64,38 @@ int main(){
 	do {
 		i = 0;
 
-		//Ввод строки для передачи
+		//Р’РІРѕРґ СЃС‚СЂРѕРєРё РґР»СЏ РїРµСЂРµРґР°С‡Рё
 		cout << "Input message or press 'Enter' to exit" << endl;
 		getline(cin, str);
 
 		if (!str.size()) break;
 
-		//Посимвольная передача строки
+		//РџРѕСЃРёРјРІРѕР»СЊРЅР°СЏ РїРµСЂРµРґР°С‡Р° СЃС‚СЂРѕРєРё
 		while (i < str.size()) {
-			//Ожидание окончания чтения
+			//РћР¶РёРґР°РЅРёРµ РѕРєРѕРЅС‡Р°РЅРёСЏ С‡С‚РµРЅРёСЏ
 			WaitForSingleObject(readyToWrite, INFINITE);							
 			ResetEvent(readyToWrite);
 			WriteFile(hWrite, &(str[i]), 1, NULL, &asynchWrite);
 			i++; 
 		}
 
-		//Запись '\n'
-		//Ожидание окончания чтения
+		//Р—Р°РїРёСЃСЊ '\n'
+		//РћР¶РёРґР°РЅРёРµ РѕРєРѕРЅС‡Р°РЅРёСЏ С‡С‚РµРЅРёСЏ
 		WaitForSingleObject(readyToWrite, INFINITE);												
 		ResetEvent(readyToWrite);
 		WriteFile(hWrite, &buf, 1, NULL, &asynchWrite);
 
 	} while (1);
 
-	//Запись 0 символа - конец работы
+	//Р—Р°РїРёСЃСЊ 0 СЃРёРјРІРѕР»Р° - РєРѕРЅРµС† СЂР°Р±РѕС‚С‹
 	buf = 0;
 	WaitForSingleObject(readyToWrite, INFINITE);
 	WriteFile(hWrite, &buf, 1, NULL, &asynchWrite);
 	
-	//Ожидание завершения работы клиента
+	//РћР¶РёРґР°РЅРёРµ Р·Р°РІРµСЂС€РµРЅРёСЏ СЂР°Р±РѕС‚С‹ РєР»РёРµРЅС‚Р°
 	WaitForSingleObject(client.hProcess, INFINITE);											
 	
-	//Закрытие handl'ов
+	//Р—Р°РєСЂС‹С‚РёРµ handl'РѕРІ
 	CloseHandle(client.hProcess);
 	CloseHandle(client.hThread);
 	CloseHandle(hWrite);
