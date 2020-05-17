@@ -6,7 +6,7 @@ using namespace std;
 
 int main() {
 
-	char buf;		//Буфер для записи
+	char buf;		//Р‘СѓС„РµСЂ РґР»СЏ Р·Р°РїРёСЃРё
 	int f = 1;
 
 	HANDLE hRead = CreateFile("COM2", GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
@@ -15,18 +15,18 @@ int main() {
 		return 0;
 	}
 
-	//Сигнал окочания асинхронного чтения
+	//РЎРёРіРЅР°Р» РѕРєРѕС‡Р°РЅРёСЏ Р°СЃРёРЅС…СЂРѕРЅРЅРѕРіРѕ С‡С‚РµРЅРёСЏ
 	HANDLE finishedReading = CreateEvent(NULL, TRUE, FALSE, "finishedReading");
 	if (!finishedReading) {
 		cout << "Failed to create readyToWrite Event!" << endl;
 		CloseHandle(hRead);
 		return 0;
 	}
-	//Overlapped для чтения из порта
+	//Overlapped РґР»СЏ С‡С‚РµРЅРёСЏ РёР· РїРѕСЂС‚Р°
 	OVERLAPPED asynchRead = { 0 };
 	asynchRead.hEvent = finishedReading;
 
-	//Сигнал окончания чтения
+	//РЎРёРіРЅР°Р» РѕРєРѕРЅС‡Р°РЅРёСЏ С‡С‚РµРЅРёСЏ
 	HANDLE readyToWrite = OpenEvent(EVENT_ALL_ACCESS, FALSE, "readyToWrite");
 	if (!readyToWrite) {
 		cout << "Failed to open readyToWrite Event!" << endl;
@@ -35,7 +35,7 @@ int main() {
 		return 0;
 	}
 
-	//Сигнал окончания записи
+	//РЎРёРіРЅР°Р» РѕРєРѕРЅС‡Р°РЅРёСЏ Р·Р°РїРёСЃРё
 	HANDLE readyToRead = OpenEvent(EVENT_ALL_ACCESS, FALSE, "readyToRead");
 	if (!readyToRead) {
 		cout << "Failed to open readyToRead Event!" << endl;
@@ -47,16 +47,16 @@ int main() {
 
 	do {
 
-		//Ожидание окончания записи
+		//РћР¶РёРґР°РЅРёРµ РѕРєРѕРЅС‡Р°РЅРёСЏ Р·Р°РїРёСЃРё
 		WaitForSingleObject(readyToRead, INFINITE);			
 		ResetEvent(readyToRead);
 
 		ReadFile(hRead, &buf, 1, NULL, &asynchRead);
-		//Ожидание окончания чтения
+		//РћР¶РёРґР°РЅРёРµ РѕРєРѕРЅС‡Р°РЅРёСЏ С‡С‚РµРЅРёСЏ
 		WaitForSingleObject(finishedReading, INFINITE);						
 		SetEvent(readyToWrite);
 
-		//Вывод символа
+		//Р’С‹РІРѕРґ СЃРёРјРІРѕР»Р°
 		if (!buf) break;
 
 		if (f) {
@@ -71,7 +71,7 @@ int main() {
 
 	} while (1);
 
-	//Закрытие handl'ов
+	//Р—Р°РєСЂС‹С‚РёРµ handl'РѕРІ
 	CloseHandle(hRead);
 	CloseHandle(readyToRead);
 	CloseHandle(readyToWrite);
